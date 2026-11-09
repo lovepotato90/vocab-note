@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="단어를 검색하고 날짜별로 모아 보는 한글 어휘 노트">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☁️</text></svg>">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2a82c4">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="어휘 노트">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>한글 어휘 노트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap">
+<style>
+:root{--bg:#faf8f4;--card:#fff;--ink:#222;--sub:#7a766e;--line:#e6e1d8;--accent:#2f6f5e;--accent-ink:#fff;--chip:#eef4f1;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17181a;--card:#222426;--ink:#ecebe7;--sub:#9a978f;--line:#34363a;--accent:#6cc4a8;--accent-ink:#10231d;--chip:#243029}}
+:root[data-theme="dark"]{--bg:#17181a;--card:#222426;--ink:#ecebe7;--sub:#9a978f;--line:#34363a;--accent:#6cc4a8;--accent-ink:#10231d;--chip:#243029}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:22px;margin:0 0 16px}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;margin-bottom:16px}
+@media (max-width:700px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+label{font-size:13px;color:var(--sub)}
+input[type=text],input[type=date]{padding:10px 12px;font-size:16px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-family:inherit}
+#q{width:100%;margin-top:6px;font-size:18px;padding:12px 14px}
+input:focus{outline:2px solid var(--accent);outline-offset:0}
+.hint{font-size:12px;color:var(--sub);margin:8px 0 0}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:12px}
+.bar h2{font-size:16px;margin:0;flex:1;min-width:120px}
+.bar label{display:flex;align-items:center;gap:6px;cursor:pointer}
+ul{list-style:none;margin:0;padding:0}
+li{position:relative;display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;cursor:pointer}
+li:hover{background:var(--chip)}
+li .w{font-weight:600;flex:1}
+li .go{color:var(--accent);font-size:13px}
+li input[type=checkbox]{width:18px;height:18px;margin:0;accent-color:var(--accent);cursor:pointer}
+li.done .w{text-decoration:line-through;color:var(--sub);font-weight:400}
+li.done .go{opacity:.6}
+li button{border:0;background:none;color:var(--sub);cursor:pointer;font-size:16px}
+.dh{font-size:13px;color:var(--sub);margin:14px 0 4px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.empty,.status{color:var(--sub);font-size:14px}
+.res{min-height:150px}
+.word{font-size:30px;font-weight:700;margin:0 0 16px}
+.btn{display:inline-block;background:var(--accent);color:var(--accent-ink);font-size:15px;padding:10px 18px;border-radius:10px;text-decoration:none;cursor:pointer}
+:root{--bg:#eef8ff;--card:#fcfeff;--ink:#3f5566;--sub:#809bb0;--line:#cfe8fa;--accent:#2a82c4;--accent-ink:#fff;--chip:#e1f2ff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c2733;--card:#25354a;--ink:#e8f3fb;--sub:#9db6c9;--line:#36506a;--accent:#7cc4f5;--accent-ink:#0f2233;--chip:#2c4259}}
+:root[data-theme="dark"]{--bg:#1c2733;--card:#25354a;--ink:#e8f3fb;--sub:#9db6c9;--line:#36506a;--accent:#7cc4f5;--accent-ink:#0f2233;--chip:#2c4259}
+body{font-size:16px;font-family:"Noto Sans KR","Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;background-image:radial-gradient(var(--line) 1.5px,transparent 1.5px);background-size:22px 22px}
+h1{text-align:center;font-size:28px;font-weight:700;margin:8px 0 22px;color:var(--accent)}
+h1 .e{display:inline-block;animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-5px) rotate(6deg)}}
+@media (prefers-reduced-motion:reduce){h1 .e{animation:none}}
+.card{border:2px solid var(--line);border-radius:24px;box-shadow:0 6px 0 var(--line);padding:20px}
+input[type=text],input[type=date]{border:2px solid var(--line);border-radius:16px;background:var(--bg);font-family:inherit}
+input:focus{outline:3px solid var(--chip);border-color:var(--accent)}
+.btn{border-radius:99px;box-shadow:0 4px 0 rgba(0,0,0,.18);padding:11px 22px;transition:transform .1s}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(3px);box-shadow:none}
+.word{color:var(--accent);font-weight:700}
+li{border-radius:16px;transition:transform .12s}
+li:hover{transform:translateX(3px)}
+li .w{font-weight:700;font-size:17px}
+li .go{color:var(--accent)}
+li.done .w{text-decoration-color:var(--accent);text-decoration-thickness:2px}
+li input[type=checkbox]{width:22px;height:22px}
+.dh{display:inline-block;background:var(--chip);color:var(--accent);border:0;border-radius:99px;padding:2px 14px;margin:14px 0 6px}
+.bar h2{font-size:18px;font-weight:700}
+:root{--accent2:#3792d8;--shadow:0 10px 30px rgba(42,130,196,.14);--g1:#d3edff;--g2:#f4fbff;--glow:rgba(255,255,255,.85)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--accent2:#5aa9e6;--shadow:0 10px 30px rgba(0,0,0,.35);--g1:#14202c;--g2:#1c2733;--glow:rgba(124,196,245,.12)}}
+:root[data-theme="dark"]{--accent2:#5aa9e6;--shadow:0 10px 30px rgba(0,0,0,.35);--g1:#14202c;--g2:#1c2733;--glow:rgba(124,196,245,.12)}
+body{font-family:"Gowun Dodum","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:17px;line-height:1.65;background:radial-gradient(circle at 15% 0%,var(--glow),transparent 45%),linear-gradient(180deg,var(--g1),var(--g2) 480px);background-attachment:fixed}
+h1,.bar h2,.word,li .w,li.done .w,.btn,.dh,label[for=q]{font-family:"Jua","Gowun Dodum","Noto Sans KR",sans-serif;font-weight:400}
+.wrap{max-width:920px;padding-top:28px}
+.grid{gap:20px;margin-bottom:20px}
+h1{font-size:36px;margin:6px 0 4px}
+.tag{text-align:center;color:var(--sub);margin:0 0 26px;font-size:16px}
+.card{border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);padding:24px;background:var(--card)}
+label[for=q]{color:var(--accent);font-size:17px}
+#q{border-radius:99px;padding:14px 22px;font-size:19px;background:var(--card);box-shadow:inset 0 2px 6px rgba(42,130,196,.08)}
+.hint{padding-left:8px}
+.res{display:flex;flex-direction:column;justify-content:center;min-height:190px}
+.res .status{text-align:center;padding:10px 0}
+.res .status::before{content:'🔎';display:block;font-size:40px;margin-bottom:6px}
+.word{font-size:42px;line-height:1.25;margin-bottom:18px;word-break:keep-all}
+.btn{align-self:flex-start;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 6px 16px rgba(42,130,196,.3);padding:12px 26px;font-size:16px}
+.bar{padding-bottom:14px;border-bottom:2px dashed var(--line);margin-bottom:8px}
+.bar h2{font-size:21px}
+#cnt{background:var(--chip);color:var(--accent);font-size:14px;padding:1px 10px;border-radius:99px;margin-left:4px;vertical-align:middle}
+#cnt:empty{display:none}
+.empty{text-align:center;padding:26px 0}
+.empty::before{content:'☁️';display:block;font-size:34px}
+.dh{font-size:15px;padding:4px 16px;border-bottom:0}
+.dh::before{content:'📅 '}
+li{background:var(--bg);border:1px solid var(--line);margin:7px 0;padding:10px 14px;border-radius:18px}
+li:hover{background:var(--chip);transform:translate(3px,-1px)}
+li .w{font-size:19px}
+li .go{background:var(--chip);padding:2px 12px;border-radius:99px;font-size:13px}
+li:hover .go{background:var(--card)}
+li.done{opacity:.7}
+li button{width:30px;height:30px;border-radius:50%}
+li button:hover{background:var(--card)}
+li input[type=checkbox]{appearance:none;-webkit-appearance:none;width:24px;height:24px;border:2px solid var(--line);border-radius:50%;background:var(--card);display:grid;place-content:center;flex:none}
+li input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+li input[type=checkbox]:checked::after{content:'✓';color:var(--accent-ink);font-size:14px;font-weight:700;line-height:1}
+#all{accent-color:var(--accent)}
+.btns{display:flex;flex-wrap:wrap;gap:10px}
+.btn.alt{background:var(--chip);color:var(--accent);box-shadow:none;border:2px solid var(--accent)}
+li .go{cursor:pointer}
+.star-card{margin-top:20px}
+.wm{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start}
+li .wm .w{flex:none}
+.mean{font-size:14px;color:var(--sub);cursor:text;word-break:keep-all}
+.mean.empty-m{color:var(--accent);opacity:.75;font-size:13px}
+.mean:hover{opacity:1;text-decoration:underline dotted}
+li input.mean-in{width:100%;margin-top:2px;padding:4px 12px;font-size:15px;border-radius:12px}
+#scnt{background:var(--chip);color:var(--accent);font-size:14px;padding:1px 10px;border-radius:99px;margin-left:4px;vertical-align:middle}
+#scnt:empty{display:none}
+li button.star{color:var(--sub);font-size:18px}
+li button.star.on{color:#f2a900}
+.dt{color:var(--sub);font-size:13px}
+.sync{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;font-size:14px;color:var(--sub);margin:-14px 0 22px}
+.sync button{border:1px solid var(--line);background:var(--card);color:var(--accent);border-radius:99px;padding:3px 12px;font-family:inherit;font-size:13px;cursor:pointer}
+.sync-form{display:flex;gap:8px;justify-content:center;margin:-10px 0 22px}
+.sync-form[hidden],.sync button[hidden]{display:none}
+#pw{border:2px solid var(--line);border-radius:99px;padding:8px 16px;font-size:15px;background:var(--card);color:var(--ink);font-family:inherit;min-width:0;width:220px}
+#pw:focus{outline:3px solid var(--chip);border-color:var(--accent)}
+.sync-form .btn{padding:8px 20px;font-size:15px;border:0;cursor:pointer;font-family:inherit}
+li{flex-wrap:wrap}
+.wm{flex:1 1 150px;min-width:150px}
+.acts{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto}
+li .w{word-break:keep-all;overflow-wrap:anywhere}
+li input.word-in{width:100%;padding:4px 12px;font-size:17px;border-radius:12px}
+@media (max-width:520px){
+  .wrap{padding:16px 12px}
+  .card{padding:18px;border-radius:22px}
+  h1{font-size:30px}
+  .word{font-size:34px}
+  .acts{width:100%;justify-content:flex-end;margin-left:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span class="e">☁️</span> 한글 어휘 노트 <span class="e">🌈</span></h1>
+  <p class="tag">단어를 검색하고, 날짜별로 모아서, 외운 단어는 체크해요!</p>
+  <div class="sync"><span id="syncmsg"></span><button id="syncbtn" type="button"></button></div>
+  <div class="sync-form" id="syncform" hidden>
+    <input id="pw" type="password" placeholder="동기화 비밀번호" autocomplete="current-password" aria-label="동기화 비밀번호">
+    <button id="pwok" type="button" class="btn">연결</button>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <label for="q">✏️ 단어 입력</label>
+      <input id="q" type="text" autocomplete="off" placeholder="예: 윤슬, 아리송하다, 설렘">
+      <p class="hint">Enter를 누르면 아래 목록에 추가돼요.</p>
+    </div>
+    <div class="card res" id="res"><p class="status">왼쪽에 단어를 입력하면 국어사전 링크가 나와요.</p></div>
+  </div>
+  <div class="card">
+    <div class="bar">
+      <h2>📚 검색한 단어 <span id="cnt"></span></h2>
+      <input id="date" type="date" aria-label="날짜 선택">
+      <label><input id="all" type="checkbox" checked> 전체 날짜 보기</label>
+    </div>
+    <ul id="list"></ul>
+  </div>
+  <div class="card star-card">
+    <div class="bar"><h2>⭐ 중요한 단어 <span id="scnt"></span></h2></div>
+    <ul id="slist"></ul>
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const naver = w => 'https://ko.dict.naver.com/#/search?query=' + encodeURIComponent(w);
+const daum = w => 'https://dic.daum.net/search.do?dic=kor&q=' + encodeURIComponent(w);
+const today = () => { const t = new Date(); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); };
+const uid = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+const lsDel = k => { try { localStorage.removeItem(k); } catch (e) {} };
+
+/* ---------- 데이터 ---------- */
+function normalize(list) {
+  const now = Date.now();
+  return (Array.isArray(list) ? list : []).map((x, i) => {
+    if (typeof x === 'string') x = { w: x };
+    if (!x || !(x.w || x.word)) return null;
+    return { id: x.id || uid(), w: String(x.w || x.word), d: x.d || today(), done: !!x.done, star: !!x.star,
+             meaning: x.meaning || '', deleted: !!x.deleted, c: x.c || now - i, u: x.u || now };
+  }).filter(Boolean);
+}
+function merge(a, b) {
+  const map = new Map();
+  a.concat(b).forEach(it => { const cur = map.get(it.id); if (!cur || it.u >= cur.u) map.set(it.id, it); });
+  return Array.from(map.values()).sort((x, y) => y.c - x.c);
+}
+let items = [], sel = today();
+try { items = normalize(JSON.parse(lsGet('vocab') || '[]')).sort((x, y) => y.c - x.c); } catch (e) {}
+const persist = () => lsSet('vocab', JSON.stringify(items));
+persist();
+const live = () => items.filter(x => !x.deleted).sort((x, y) => y.c - x.c);
+const latest = it => items.find(x => x.id === it.id) || it;
+function commit(it) { if (it) it.u = Date.now(); persist(); renderList(); scheduleSync(); }
+
+/* ---------- 화면 ---------- */
+function renderList() {
+  renderStars();
+  const all = $('all').checked, ul = $('list'); ul.textContent = '';
+  const rows = all ? live().sort((a, b) => a.d < b.d ? 1 : a.d > b.d ? -1 : 0) : live().filter(x => x.d === sel);
+  $('cnt').textContent = rows.length ? '(' + rows.length + ')' : '';
+  if (!rows.length) { const p = document.createElement('p'); p.className = 'empty'; p.textContent = all ? '아직 검색한 단어가 없어요.' : '이 날짜에 검색한 단어가 없어요.'; ul.appendChild(p); return; }
+  let last = '';
+  rows.forEach(it => {
+    if (all && it.d !== last) { last = it.d; const h = document.createElement('div'); h.className = 'dh'; const n = rows.filter(x => x.d === it.d).length; const wd = new Date(it.d + 'T00:00:00').toLocaleDateString('ko-KR', { weekday: 'short' }); h.textContent = it.d + ' (' + wd + ') · ' + n + '개'; ul.appendChild(h); }
+    const li = document.createElement('li');
+    const s = document.createElement('span'); s.className = 'w'; s.textContent = it.w;
+    if (it.done) li.classList.add('done');
+    const c = document.createElement('input'); c.type = 'checkbox'; c.checked = !!it.done; c.title = '외웠어요';
+    c.onclick = e => e.stopPropagation();
+    c.onchange = () => { it.done = c.checked; commit(it); };
+    const a = document.createElement('span'); a.className = 'go'; a.textContent = '네이버 ↗';
+    const g = document.createElement('span'); g.className = 'go'; g.textContent = '다음 ↗';
+    g.onclick = e => { e.stopPropagation(); window.open(daum(it.w), '_blank', 'noopener'); };
+    const d = document.createElement('button'); d.textContent = '✕'; d.title = '삭제';
+    d.onclick = e => { e.stopPropagation(); it.deleted = true; commit(it); };
+    const m = document.createElement('button'); m.textContent = '📅'; m.title = '날짜 옮기기';
+    m.onclick = e => {
+      e.stopPropagation();
+      const inp = document.createElement('input'); inp.type = 'date'; inp.value = it.d;
+      inp.style.cssText = 'position:absolute;right:30px;top:0;opacity:0;width:1px;height:100%';
+      inp.onclick = ev => ev.stopPropagation();
+      inp.onchange = () => { if (inp.value) { latest(it).d = inp.value; commit(latest(it)); } else inp.remove(); };
+      inp.onblur = () => setTimeout(() => inp.remove(), 200);
+      li.appendChild(inp);
+      try { inp.showPicker(); } catch (err) { inp.click(); }
+    };
+    li.onclick = () => window.open(naver(it.w), '_blank', 'noopener');
+    const st = document.createElement('button'); st.className = 'star' + (it.star ? ' on' : ''); st.textContent = it.star ? '★' : '☆'; st.title = '중요한 단어로 표시';
+    st.onclick = e => { e.stopPropagation(); it.star = !it.star; commit(it); };
+    const wm = document.createElement('span'); wm.className = 'wm'; wm.append(s, meaningEl(it));
+    const ed = editBtn(it, s);
+    const acts = document.createElement('span'); acts.className = 'acts'; acts.append(a, g, st, ed, m, d);
+    li.append(c, wm, acts); ul.appendChild(li);
+  });
+}
+
+function editBtn(it, s) {
+  const b = document.createElement('button'); b.textContent = '✏️'; b.title = '단어 수정';
+  b.onclick = e => {
+    e.stopPropagation();
+    const inp = document.createElement('input'); inp.type = 'text'; inp.className = 'word-in'; inp.value = it.w; inp.maxLength = 100;
+    let done = false;
+    const save = () => {
+      if (done) return; done = true;
+      const v = inp.value.trim();
+      if (!v || v === it.w) { renderList(); return; }
+      const t = latest(it); t.w = v; commit(t);
+    };
+    inp.onclick = ev => ev.stopPropagation();
+    inp.onkeydown = ev => { if (ev.key === 'Enter' && !ev.isComposing) save(); if (ev.key === 'Escape') { done = true; renderList(); } };
+    inp.onblur = save;
+    s.replaceWith(inp); inp.focus(); inp.select();
+  };
+  return b;
+}
+
+function meaningEl(it) {
+  const m = document.createElement('span'); m.className = 'mean' + (it.meaning ? '' : ' empty-m');
+  m.textContent = it.meaning || '+ 뜻 입력'; m.title = '클릭해서 뜻 입력';
+  m.onclick = e => {
+    e.stopPropagation();
+    const inp = document.createElement('input'); inp.type = 'text'; inp.className = 'mean-in'; inp.value = it.meaning || ''; inp.placeholder = '내가 알게 된 뜻을 적어요';
+    let done = false;
+    const save = () => { if (done) return; done = true; const t = latest(it); t.meaning = inp.value.trim(); commit(t); };
+    inp.onclick = ev => ev.stopPropagation();
+    inp.onkeydown = ev => { if (ev.key === 'Enter' && !ev.isComposing) save(); if (ev.key === 'Escape') { done = true; renderList(); } };
+    inp.onblur = save;
+    m.replaceWith(inp); inp.focus();
+  };
+  return m;
+}
+
+function renderStars() {
+  const ul = $('slist'); ul.textContent = '';
+  const rows = live().filter(x => x.star);
+  $('scnt').textContent = rows.length ? '(' + rows.length + ')' : '';
+  if (!rows.length) { const p = document.createElement('p'); p.className = 'empty'; p.textContent = '머리에 잘 안 들어오는 단어는 ☆를 눌러 여기에 모아 보세요.'; ul.appendChild(p); return; }
+  rows.forEach(it => {
+    const li = document.createElement('li');
+    if (it.done) li.classList.add('done');
+    const s = document.createElement('span'); s.className = 'w'; s.textContent = it.w;
+    const dt = document.createElement('span'); dt.className = 'dt'; dt.textContent = it.d;
+    const a = document.createElement('span'); a.className = 'go'; a.textContent = '네이버 ↗';
+    const g = document.createElement('span'); g.className = 'go'; g.textContent = '다음 ↗';
+    g.onclick = e => { e.stopPropagation(); window.open(daum(it.w), '_blank', 'noopener'); };
+    const st = document.createElement('button'); st.className = 'star on'; st.textContent = '★'; st.title = '중요 표시 해제';
+    st.onclick = e => { e.stopPropagation(); it.star = false; commit(it); };
+    li.onclick = () => window.open(naver(it.w), '_blank', 'noopener');
+    const wm = document.createElement('span'); wm.className = 'wm'; wm.append(s, meaningEl(it));
+    const ed = editBtn(it, s);
+    const acts = document.createElement('span'); acts.className = 'acts'; acts.append(dt, a, g, ed, st);
+    li.append(wm, acts); ul.appendChild(li);
+  });
+}
+
+function add(w) {
+  if (!w) return;
+  const ex = live().find(x => x.w === w && x.d === sel);
+  if (ex) { ex.c = Date.now(); commit(ex); return; }
+  const now = Date.now();
+  items.unshift({ id: uid(), w: w, d: sel, done: false, star: false, meaning: '', deleted: false, c: now, u: now });
+  commit();
+}
+
+function show(w) {
+  const r = $('res'); r.textContent = '';
+  if (!w) { const p = document.createElement('p'); p.className = 'status'; p.textContent = '왼쪽에 단어를 입력하면 국어사전 링크가 나와요.'; r.appendChild(p); return; }
+  const h = document.createElement('p'); h.className = 'word'; h.textContent = w;
+  const a = document.createElement('a'); a.className = 'btn'; a.href = naver(w); a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = '네이버 국어사전 ↗';
+  a.onclick = () => add(w);
+  const b = document.createElement('a'); b.className = 'btn alt'; b.href = daum(w); b.target = '_blank'; b.rel = 'noopener noreferrer'; b.textContent = '다음 국어사전 ↗';
+  b.onclick = () => add(w);
+  const row = document.createElement('div'); row.className = 'btns'; row.append(a, b);
+  r.append(h, row);
+}
+
+/* ---------- 기기 간 동기화 ---------- */
+const SYNC_URL = '/api/sync';
+let pw = lsGet('vocab_pw') || '', syncing = false, again = false, timer = null, state = pw ? 'syncing' : 'off', lastOk = '';
+
+function setState(s) { state = s; renderSync(); }
+function renderSync() {
+  const T = {
+    off: ['동기화가 꺼져 있어요 (이 기기에만 저장돼요)', '동기화 켜기'],
+    syncing: ['동기화 중…', ''],
+    ok: ['☁️ 동기화됨 · ' + lastOk, '연결 해제'],
+    fail: ['인터넷에 연결되지 않았어요. 연결되면 다시 동기화할게요', '다시 시도'],
+    auth: ['비밀번호가 맞지 않아요', '다시 입력'],
+    config: ['서버 설정이 아직 안 끝났어요 (README 참고)', '다시 시도']
+  }[state];
+  $('syncmsg').textContent = T[0];
+  $('syncbtn').textContent = T[1]; $('syncbtn').hidden = !T[1];
+}
+function scheduleSync() { if (!pw) return; clearTimeout(timer); timer = setTimeout(sync, 800); }
+
+async function sync() {
+  if (!pw) return;
+  if (syncing) { again = true; return; }
+  syncing = true; setState('syncing');
+  let next = 'ok';
+  try {
+    const r = await fetch(SYNC_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-vocab-password': pw }, body: JSON.stringify({ items: items }) });
+    if (r.status === 401) { pw = ''; lsDel('vocab_pw'); next = 'auth'; }
+    else if (r.status === 500) next = 'config';
+    else if (!r.ok) next = 'fail';
+    else {
+      const data = await r.json();
+      const before = JSON.stringify(items);
+      items = merge(normalize(data.items), items);
+      if (JSON.stringify(items) !== before) {
+        persist();
+        const ae = document.activeElement;
+        if (!(ae && ae.classList && (ae.classList.contains('mean-in') || ae.classList.contains('word-in')))) renderList();
+      }
+      const t = new Date(); lastOk = String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0');
+    }
+  } catch (e) { next = 'fail'; }
+  syncing = false; setState(next);
+  if (again) { again = false; scheduleSync(); }
+}
+
+$('syncbtn').addEventListener('click', () => {
+  if (state === 'ok') { pw = ''; lsDel('vocab_pw'); setState('off'); $('syncform').hidden = true; }
+  else if (state === 'off' || state === 'auth') { $('syncform').hidden = false; $('pw').focus(); }
+  else sync();
+});
+function connect() {
+  const v = $('pw').value.trim(); if (!v) return;
+  pw = v; lsSet('vocab_pw', pw); $('pw').value = ''; $('syncform').hidden = true; sync();
+}
+$('pwok').addEventListener('click', connect);
+$('pw').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) connect(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
+window.addEventListener('online', sync);
+setInterval(() => { if (!document.hidden) sync(); }, 30000);
+
+/* ---------- 입력 ---------- */
+$('date').value = sel;
+$('date').addEventListener('change', e => { sel = e.target.value || today(); $('all').checked = false; renderList(); });
+$('all').addEventListener('change', renderList);
+$('q').addEventListener('input', e => show(e.target.value.trim()));
+$('q').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.isComposing) { const v = e.target.value.trim(); if (v) add(v); }
+});
+renderList(); renderSync();
+if (pw) sync();
+if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+</script>
+</body>
+</html>
