@@ -1,0 +1,12 @@
+{
+  "name": "vocab-note",
+  "version": "1.0.0",
+  "private": true,
+  "description": "한글 어휘 노트",
+  "dependencies": {
+    "@upstash/redis": "^1.34.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
