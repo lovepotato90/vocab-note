@@ -132,6 +132,18 @@ li button.star.on{color:#f2a900}
 #pw{border:2px solid var(--line);border-radius:99px;padding:8px 16px;font-size:15px;background:var(--card);color:var(--ink);font-family:inherit;min-width:0;width:220px}
 #pw:focus{outline:3px solid var(--chip);border-color:var(--accent)}
 .sync-form .btn{padding:8px 20px;font-size:15px;border:0;cursor:pointer;font-family:inherit}
+li{flex-wrap:wrap}
+.wm{flex:1 1 150px;min-width:150px}
+.acts{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto}
+li .w{word-break:keep-all;overflow-wrap:anywhere}
+li input.word-in{width:100%;padding:4px 12px;font-size:17px;border-radius:12px}
+@media (max-width:520px){
+  .wrap{padding:16px 12px}
+  .card{padding:18px;border-radius:22px}
+  h1{font-size:30px}
+  .word{font-size:34px}
+  .acts{width:100%;justify-content:flex-end;margin-left:0}
+}
 </style>
 </head>
 <body>
@@ -233,8 +245,30 @@ function renderList() {
     const st = document.createElement('button'); st.className = 'star' + (it.star ? ' on' : ''); st.textContent = it.star ? '★' : '☆'; st.title = '중요한 단어로 표시';
     st.onclick = e => { e.stopPropagation(); it.star = !it.star; commit(it); };
     const wm = document.createElement('span'); wm.className = 'wm'; wm.append(s, meaningEl(it));
-    li.append(c, wm, a, g, st, m, d); ul.appendChild(li);
+    const ed = editBtn(it, s);
+    const acts = document.createElement('span'); acts.className = 'acts'; acts.append(a, g, st, ed, m, d);
+    li.append(c, wm, acts); ul.appendChild(li);
   });
+}
+
+function editBtn(it, s) {
+  const b = document.createElement('button'); b.textContent = '✏️'; b.title = '단어 수정';
+  b.onclick = e => {
+    e.stopPropagation();
+    const inp = document.createElement('input'); inp.type = 'text'; inp.className = 'word-in'; inp.value = it.w; inp.maxLength = 100;
+    let done = false;
+    const save = () => {
+      if (done) return; done = true;
+      const v = inp.value.trim();
+      if (!v || v === it.w) { renderList(); return; }
+      const t = latest(it); t.w = v; commit(t);
+    };
+    inp.onclick = ev => ev.stopPropagation();
+    inp.onkeydown = ev => { if (ev.key === 'Enter' && !ev.isComposing) save(); if (ev.key === 'Escape') { done = true; renderList(); } };
+    inp.onblur = save;
+    s.replaceWith(inp); inp.focus(); inp.select();
+  };
+  return b;
 }
 
 function meaningEl(it) {
@@ -270,7 +304,9 @@ function renderStars() {
     st.onclick = e => { e.stopPropagation(); it.star = false; commit(it); };
     li.onclick = () => window.open(naver(it.w), '_blank', 'noopener');
     const wm = document.createElement('span'); wm.className = 'wm'; wm.append(s, meaningEl(it));
-    li.append(wm, dt, a, g, st); ul.appendChild(li);
+    const ed = editBtn(it, s);
+    const acts = document.createElement('span'); acts.className = 'acts'; acts.append(dt, a, g, ed, st);
+    li.append(wm, acts); ul.appendChild(li);
   });
 }
 
@@ -331,7 +367,7 @@ async function sync() {
       if (JSON.stringify(items) !== before) {
         persist();
         const ae = document.activeElement;
-        if (!(ae && ae.classList && ae.classList.contains('mean-in'))) renderList();
+        if (!(ae && ae.classList && (ae.classList.contains('mean-in') || ae.classList.contains('word-in')))) renderList();
       }
       const t = new Date(); lastOk = String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0');
     }
